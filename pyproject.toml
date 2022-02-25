@@ -6,6 +6,7 @@ authors = ["Oliver Strickson <ostrickson@turing.ac.uk>"]
 
 [tool.poetry.dependencies]
 python = "^3.8"
+intake = "^0.6.5"
 
 [tool.poetry.dev-dependencies]
 pytest = "^5.2"
@@ -13,3 +14,6 @@ pytest = "^5.2"
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.plugins."intake.drivers"]
+intake_synthetic_alphabetsoup = "intake_alphabetsoup:SyntheticAlphabetSoupSource"
