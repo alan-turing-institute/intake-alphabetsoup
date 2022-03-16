@@ -1,6 +1,6 @@
 # intake-alphabetsoup
 
-Provides an [intake](https://intake.readthedocs.io/en/latest/index.html) interface to synthetic cryoEM images from [VNE](https://github.com/quantumjot/vne).
+Provides an [Intake](https://intake.readthedocs.io/en/latest/index.html) interface to synthetic cryoEM images from [VNE](https://github.com/quantumjot/vne).
 
 Installation:
 
