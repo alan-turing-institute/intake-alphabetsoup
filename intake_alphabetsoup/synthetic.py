@@ -1,15 +1,17 @@
 import intake
+from functools import lru_cache
+from . import __version__
 
 
 class SyntheticAlphabetSoupSource(intake.source.base.DataSource):
-    container = "ndarray"
+    container = "python"
     name = "alphabetsoup"
-    version = "0.0.1"
+    version = __version__
     partition_access = True
 
     def __init__(
         self,
-        datashape=(512, 512),
+        datashape=(512, 512, 1),
         image_count=1,
         ctf_defocus=5e3,
         ctf_box_size=512,
@@ -22,7 +24,30 @@ class SyntheticAlphabetSoupSource(intake.source.base.DataSource):
         self.ctf_defocus = ctf_defocus
         self.ctf_box_size = ctf_box_size
 
+        self._ds = None
+
     def _get_schema(self):
+        import numpy as np
+        import vne.simulate as simulate
+        from vne.dataset import SimulatedDataset
+        from vne.special.ctf import contrast_transfer_function, convolve_with_ctf
+
+        if self._ds is None:
+            simulate.set_default_font("HelveticaNeue", 20)
+
+            ctf = contrast_transfer_function(
+                defocus=self.ctf_defocus, box_size=self.ctf_box_size
+            )
+
+            def preprocessor(x):
+                x_ctf = convolve_with_ctf(1 + x, ctf, add_poisson_noise=False,)
+                x_noise = x_ctf + np.random.randn(*x.shape) * 40
+                return x_noise
+
+            self._ds = SimulatedDataset(
+                preprocessor=preprocessor, simulator=simulate.create_heterogeneous_image
+            )
+
         return intake.source.base.Schema(
             datashape=self.datashape,
             dtype="float32",
@@ -31,39 +56,24 @@ class SyntheticAlphabetSoupSource(intake.source.base.DataSource):
             extra_metadata=self.metadata,
         )
 
+    @lru_cache(maxsize=None)
     def _get_partition(self, i):
-        import numpy as np
-        import vne.simulate as simulate
-        from vne.dataset import SimulatedDataset
-        from vne.special.ctf import contrast_transfer_function, convolve_with_ctf
-
-        simulate.set_default_font("HelveticaNeue", 20)
-
-        ctf = contrast_transfer_function(defocus=5e3, box_size=512)
-
-        def preprocessor(x):
-            x_ctf = convolve_with_ctf(1 + x, ctf, add_poisson_noise=False,)
-            x_noise = x_ctf + np.random.randn(*x.shape) * 40
-            return x_noise
-
-        ds = SimulatedDataset(
-            preprocessor=preprocessor, simulator=simulate.create_heterogeneous_image
-        )
-
-        return ds[0]
-
-    def read(self):
-        import numpy as np
-
         self._load_metadata()
 
-        return np.stack(
-            [
-                self.read_partition(i)[0].permute(1, 2, 0)
-                for i in range(self.image_count)
-            ]
-        )
+        data = self._ds[i]
+        images = data[0].permute(1, 2, 0)
+        boxes = data[1]["boxes"]
+        labels = data[1]["labels"]
+
+        return (images, boxes, labels)
+
+    def read(self):
+        self._load_metadata()
+
+        # return tuple of lists, rather than list of tuples
+        gen_data = (self.read_partition(i) for i in range(self.image_count))
+
+        return tuple(map(list, zip(*gen_data)))
 
     def _close(self):
-        # nothing to do
-        pass
+        self._ds = None
