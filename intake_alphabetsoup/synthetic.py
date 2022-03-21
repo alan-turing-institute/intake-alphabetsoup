@@ -11,7 +11,7 @@ class SyntheticAlphabetSoupSource(intake.source.base.DataSource):
 
     def __init__(
         self,
-        shape=(512, 512),
+        datashape=(512, 512),
         image_count=1,
         ctf_defocus=5e3,
         ctf_box_size=512,
@@ -19,7 +19,7 @@ class SyntheticAlphabetSoupSource(intake.source.base.DataSource):
     ):
         super().__init__(metadata=metadata)
 
-        self.shape = shape
+        self.datashape = datashape
         self.image_count = image_count
         self.ctf_defocus = ctf_defocus
         self.ctf_box_size = ctf_box_size
@@ -47,12 +47,13 @@ class SyntheticAlphabetSoupSource(intake.source.base.DataSource):
             self._ds = SimulatedDataset(
                 preprocessor=preprocessor,
                 simulator=simulate.create_heterogeneous_image,
-                size=self.shape,
+                size=self.datashape,
             )
 
         return intake.source.base.Schema(
             dtype="float32",
             shape=None,
+            datashape=None,
             npartitions=self.image_count,
             extra_metadata=self.metadata,
         )
