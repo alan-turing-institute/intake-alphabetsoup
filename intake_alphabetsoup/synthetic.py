@@ -15,6 +15,8 @@ class SyntheticAlphabetSoupSource(intake.source.base.DataSource):
         image_count=1,
         ctf_defocus=5e3,
         ctf_box_size=512,
+        font_face=None,
+        font_size=20,
         metadata=None,
     ):
         super().__init__(metadata=metadata)
@@ -23,6 +25,8 @@ class SyntheticAlphabetSoupSource(intake.source.base.DataSource):
         self.image_count = image_count
         self.ctf_defocus = ctf_defocus
         self.ctf_box_size = ctf_box_size
+        self.font_face = font_face
+        self.font_size = font_size
 
         self._ds = None
 
@@ -33,7 +37,8 @@ class SyntheticAlphabetSoupSource(intake.source.base.DataSource):
         from vne.special.ctf import contrast_transfer_function, convolve_with_ctf
 
         if self._ds is None:
-            simulate.set_default_font("HelveticaNeue", 20)
+            if self.font_face:
+                simulate.set_default_font(self.font_face, self.font_size)
 
             ctf = contrast_transfer_function(
                 defocus=self.ctf_defocus, box_size=self.ctf_box_size
