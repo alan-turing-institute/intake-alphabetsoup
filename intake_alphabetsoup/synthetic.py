@@ -63,9 +63,9 @@ class SyntheticAlphabetSoupSource(intake.source.base.DataSource):
         self._load_metadata()
 
         data = self._ds[i]
-        images = data[0].permute(1, 2, 0)
-        boxes = data[1]["boxes"]
-        labels = data[1]["labels"]
+        images = data[0][0].detach().numpy()
+        boxes = data[1]["boxes"].detach().numpy()
+        labels = data[1]["labels"].detach().numpy()
 
         return (images, boxes, labels)
 
