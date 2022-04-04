@@ -36,8 +36,7 @@ class SyntheticAlphabetSoupSource(intake.source.base.DataSource):
         from vne.special.ctf import contrast_transfer_function, convolve_with_ctf
 
         if self._ds is None:
-            if self.font_face:
-                simulate.set_default_font(self.font_face, self.font_size)
+            simulate.set_default_font(self.font_face, self.font_size)
 
             ctf = contrast_transfer_function(
                 defocus=self.ctf_defocus, box_size=self.ctf_box_size
