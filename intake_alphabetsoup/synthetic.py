@@ -2,7 +2,6 @@ import intake
 from functools import lru_cache
 from . import __version__
 
-
 class SyntheticAlphabetSoupSource(intake.source.base.DataSource):
     container = "python"
     name = "alphabetsoup"
