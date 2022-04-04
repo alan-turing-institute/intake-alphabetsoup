@@ -64,6 +64,7 @@ class SyntheticAlphabetSoupSource(intake.source.base.DataSource):
     @lru_cache(maxsize=None)
     def _get_partition(self, i):
         self._load_metadata()
+        assert self._ds is not None
 
         data = self._ds[i]
         images = data[0][0].detach().numpy()
